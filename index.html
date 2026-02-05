@@ -13,6 +13,7 @@
       justify-content: center;
       background: linear-gradient(135deg, #ff9a9e, #fad0c4);
       font-family: Arial, sans-serif;
+      overflow: hidden;
     }
     .card {
       background: white;
@@ -22,13 +23,18 @@
       text-align: center;
       max-width: 520px;
       width: 92%;
+      position: relative;
+      z-index: 2;
     }
-    h1 { margin-bottom: 16px; color: #e11d48; }
-    .quiz { text-align: left; margin: 10px 0 20px; }
-    .q { margin-bottom: 14px; }
-    .q-title { font-weight: bold; margin-bottom: 6px; }
-    .options label { display: block; cursor: pointer; margin: 4px 0; }
-    .actions { position: relative; height: 120px; margin-top: 10px; }
+    h1 { margin-bottom: 10px; color: #e11d48; }
+    .hint { font-size: 14px; color: #475569; margin-bottom: 12px; }
+
+    .question { display: none; text-align: left; }
+    .question.active { display: block; }
+    .q-title { font-weight: bold; margin-bottom: 8px; }
+    .options label { display: block; cursor: pointer; margin: 6px 0; }
+
+    .actions { position: relative; height: 80px; margin-top: 12px; display: flex; justify-content: center; gap: 12px; }
     button {
       padding: 12px 24px;
       font-size: 18px;
@@ -38,61 +44,77 @@
       transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
     }
     button:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
-    #yesBtn { background: #22c55e; color: white; margin-right: 20px; opacity: 0.6; }
-    #yesBtn[disabled] { cursor: not-allowed; }
-    #noBtn {
-      background: #ef4444; color: white; position: absolute; right: 0; top: 0;
+    #nextBtn { background: #22c55e; color: white; }
+    #nextBtn[disabled] { opacity: 0.6; cursor: not-allowed; }
+    #noBtn { background: #ef4444; color: white; position: absolute; right: 0; top: 0; }
+
+    .message { margin-top: 16px; font-size: 22px; color: #0f172a; display: none; text-align: center; }
+
+    /* Hearts animation */
+    .heart {
+      position: fixed;
+      bottom: -20px;
+      font-size: 20px;
+      animation: floatUp 2.5s linear forwards;
+      pointer-events: none;
+      z-index: 1;
     }
-    .message { margin-top: 16px; font-size: 20px; color: #0f172a; display: none; }
-    .hint { font-size: 14px; color: #475569; margin-bottom: 8px; }
+    @keyframes floatUp {
+      0% { transform: translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateY(-110vh) scale(1.5); opacity: 0; }
+    }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>Will you be my Valentine? 💖</h1>
-    <div class="hint">Before you click <b>Yes</b>, solve these 3 questions 😉</div>
+    <div class="hint">Answer correctly to move ahead… and get a shower of hearts 😄</div>
 
-    <div class="quiz">
-      <div class="q" data-answer="q1a1">
-        <div class="q-title">1) Easy: When did we first meet?</div>
-        <div class="options">
-          <label><input type="radio" name="q1" value="q1a1"> 7 Jan 2022</label>
-          <label><input type="radio" name="q1" value="q1a2"> 22 March 2022</label>
-        </div>
+    <!-- Q1 -->
+    <div class="question active" id="q1">
+      <div class="q-title">1) Easy: When did we first meet?</div>
+      <div class="options">
+        <label><input type="radio" name="q1" value="correct"> 7 Jan 2022</label>
+        <label><input type="radio" name="q1" value="wrong"> 22 March 2022</label>
       </div>
+    </div>
 
-      <div class="q" data-answer="q2a1">
-        <div class="q-title">2) Love meter check: How many states did we travel together?</div>
-        <div class="options">
-          <label><input type="radio" name="q2" value="q2a1"> 8</label>
-          <label><input type="radio" name="q2" value="q2a2"> 10</label>
-        </div>
+    <!-- Q2 -->
+    <div class="question" id="q2">
+      <div class="q-title">2) Love meter check: How many states did we travel together?</div>
+      <div class="options">
+        <label><input type="radio" name="q2" value="correct"> 8</label>
+        <label><input type="radio" name="q2" value="wrong"> 10</label>
       </div>
+    </div>
 
-      <div class="q" data-answer="q3a1">
-        <div class="q-title">3) How much do you love me?</div>
-        <div class="options">
-          <label><input type="radio" name="q3" value="q3a1"> Stars in the galaxy into liters of water on Earth</label>
-          <label><input type="radio" name="q3" value="q3a2"> Population of India into total trees in this world</label>
-        </div>
+    <!-- Q3 -->
+    <div class="question" id="q3">
+      <div class="q-title">3) How much do you love me? (Select both 😉)</div>
+      <div class="options">
+        <label><input type="checkbox" name="q3" value="a"> Stars in the galaxy into liters of water on Earth</label>
+        <label><input type="checkbox" name="q3" value="b"> Population of India into total trees in this world</label>
       </div>
     </div>
 
     <div class="actions">
-      <button id="yesBtn" disabled>Yes</button>
+      <button id="nextBtn" disabled>Next</button>
       <button id="noBtn">No</button>
     </div>
 
-    <div id="message" class="message">Yay! You got all 3 right. Yes, you are my Valentine! 🥰💖</div>
+    <div id="finalMsg" class="message">Yay! You got everything right. Yes, you are my Valentine! 🥰💖</div>
   </div>
 
   <script>
     const noBtn = document.getElementById("noBtn");
-    const yesBtn = document.getElementById("yesBtn");
-    const message = document.getElementById("message");
-    const card = document.querySelector(".card");
+    const nextBtn = document.getElementById("nextBtn");
+    const finalMsg = document.getElementById("finalMsg");
 
-    // Make the No button run away 😄
+    const questions = [document.getElementById('q1'), document.getElementById('q2'), document.getElementById('q3')];
+    let current = 0;
+
+    // No button runs away
+    const card = document.querySelector('.card');
     noBtn.addEventListener("mouseenter", () => {
       const cardRect = card.getBoundingClientRect();
       const maxX = cardRect.width - noBtn.offsetWidth;
@@ -103,37 +125,61 @@
       noBtn.style.top = y + "px";
     });
 
-    // Check answers
-    const questions = document.querySelectorAll('.q');
-    const radios = document.querySelectorAll('input[type="radio"]');
-
-    function checkAllCorrect() {
-      for (const q of questions) {
-        const correct = q.getAttribute('data-answer');
-        const name = q.querySelector('input').name;
-        const checked = document.querySelector(`input[name="${name}"]:checked`);
-        if (!checked || checked.value !== correct) {
-          return false;
-        }
+    function showerHearts(count = 40) {
+      for (let i = 0; i < count; i++) {
+        const h = document.createElement('div');
+        h.className = 'heart';
+        h.textContent = '💖';
+        h.style.left = Math.random() * 100 + 'vw';
+        h.style.fontSize = (16 + Math.random() * 24) + 'px';
+        h.style.animationDuration = (2 + Math.random() * 1.5) + 's';
+        document.body.appendChild(h);
+        setTimeout(() => h.remove(), 3000);
       }
-      return true;
     }
 
-    radios.forEach(r => r.addEventListener('change', () => {
-      if (checkAllCorrect()) {
-        yesBtn.disabled = false;
-        yesBtn.style.opacity = '1';
-      } else {
-        yesBtn.disabled = true;
-        yesBtn.style.opacity = '0.6';
+    function checkCurrentCorrect() {
+      if (current === 0) {
+        const sel = document.querySelector('input[name="q1"]:checked');
+        return sel && sel.value === 'correct';
       }
-    }));
+      if (current === 1) {
+        const sel = document.querySelector('input[name="q2"]:checked');
+        return sel && sel.value === 'correct';
+      }
+      if (current === 2) {
+        const a = document.querySelector('input[name="q3"][value="a"]').checked;
+        const b = document.querySelector('input[name="q3"][value="b"]').checked;
+        return a && b; // both is correct
+      }
+      return false;
+    }
 
-    yesBtn.addEventListener("click", () => {
-      if (!checkAllCorrect()) return;
-      message.style.display = "block";
-      yesBtn.disabled = true;
-      noBtn.style.display = "none";
+    function updateNextState() {
+      nextBtn.disabled = !checkCurrentCorrect();
+    }
+
+    document.addEventListener('change', updateNextState);
+
+    nextBtn.addEventListener('click', () => {
+      if (!checkCurrentCorrect()) return;
+
+      showerHearts();
+
+      // Move to next after a short delay
+      setTimeout(() => {
+        questions[current].classList.remove('active');
+        current++;
+        if (current < questions.length) {
+          questions[current].classList.add('active');
+          nextBtn.disabled = true;
+        } else {
+          // Finished all questions
+          finalMsg.style.display = 'block';
+          nextBtn.style.display = 'none';
+          noBtn.style.display = 'none';
+        }
+      }, 600);
     });
   </script>
 </body>
