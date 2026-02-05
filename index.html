@@ -16,61 +16,74 @@
     }
     .card {
       background: white;
-      padding: 40px 30px;
+      padding: 32px 28px;
       border-radius: 20px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.2);
       text-align: center;
-      max-width: 400px;
-      width: 90%;
+      max-width: 520px;
+      width: 92%;
     }
-    h1 {
-      margin-bottom: 30px;
-      color: #e11d48;
-    }
-    .buttons {
-      position: relative;
-      height: 120px;
-    }
+    h1 { margin-bottom: 16px; color: #e11d48; }
+    .quiz { text-align: left; margin: 10px 0 20px; }
+    .q { margin-bottom: 14px; }
+    .q-title { font-weight: bold; margin-bottom: 6px; }
+    .options label { display: block; cursor: pointer; margin: 4px 0; }
+    .actions { position: relative; height: 120px; margin-top: 10px; }
     button {
       padding: 12px 24px;
       font-size: 18px;
       border: none;
       border-radius: 999px;
       cursor: pointer;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
     }
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-    }
-    #yesBtn {
-      background: #22c55e;
-      color: white;
-      margin-right: 20px;
-    }
+    button:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
+    #yesBtn { background: #22c55e; color: white; margin-right: 20px; opacity: 0.6; }
+    #yesBtn[disabled] { cursor: not-allowed; }
     #noBtn {
-      background: #ef4444;
-      color: white;
-      position: absolute;
-      right: 0;
-      top: 0;
+      background: #ef4444; color: white; position: absolute; right: 0; top: 0;
     }
-    .message {
-      margin-top: 20px;
-      font-size: 20px;
-      color: #0f172a;
-      display: none;
-    }
+    .message { margin-top: 16px; font-size: 20px; color: #0f172a; display: none; }
+    .hint { font-size: 14px; color: #475569; margin-bottom: 8px; }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>Will you be my Valentine? 💖</h1>
-    <div class="buttons">
-      <button id="yesBtn">Yes</button>
+    <div class="hint">Before you click <b>Yes</b>, solve these 3 questions 😉</div>
+
+    <div class="quiz">
+      <div class="q" data-answer="q1a1">
+        <div class="q-title">1) Easy: When did we first meet?</div>
+        <div class="options">
+          <label><input type="radio" name="q1" value="q1a1"> 7 Jan 2022</label>
+          <label><input type="radio" name="q1" value="q1a2"> 22 March 2022</label>
+        </div>
+      </div>
+
+      <div class="q" data-answer="q2a1">
+        <div class="q-title">2) Love meter check: How many states did we travel together?</div>
+        <div class="options">
+          <label><input type="radio" name="q2" value="q2a1"> 8</label>
+          <label><input type="radio" name="q2" value="q2a2"> 10</label>
+        </div>
+      </div>
+
+      <div class="q" data-answer="q3a1">
+        <div class="q-title">3) How much do you love me?</div>
+        <div class="options">
+          <label><input type="radio" name="q3" value="q3a1"> Stars in the galaxy into liters of water on Earth</label>
+          <label><input type="radio" name="q3" value="q3a2"> Population of India into total trees in this world</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="yesBtn" disabled>Yes</button>
       <button id="noBtn">No</button>
     </div>
-    <div id="message" class="message">Yay! You just made my day! 🥰</div>
+
+    <div id="message" class="message">Yay! You got all 3 right. Yes, you are my Valentine! 🥰💖</div>
   </div>
 
   <script>
@@ -79,19 +92,45 @@
     const message = document.getElementById("message");
     const card = document.querySelector(".card");
 
+    // Make the No button run away 😄
     noBtn.addEventListener("mouseenter", () => {
       const cardRect = card.getBoundingClientRect();
       const maxX = cardRect.width - noBtn.offsetWidth;
       const maxY = cardRect.height - noBtn.offsetHeight;
-
-      const x = Math.random() * maxX;
-      const y = Math.random() * maxY;
-
+      const x = Math.random() * Math.max(0, maxX);
+      const y = Math.random() * Math.max(0, maxY);
       noBtn.style.left = x + "px";
       noBtn.style.top = y + "px";
     });
 
+    // Check answers
+    const questions = document.querySelectorAll('.q');
+    const radios = document.querySelectorAll('input[type="radio"]');
+
+    function checkAllCorrect() {
+      for (const q of questions) {
+        const correct = q.getAttribute('data-answer');
+        const name = q.querySelector('input').name;
+        const checked = document.querySelector(`input[name="${name}"]:checked`);
+        if (!checked || checked.value !== correct) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    radios.forEach(r => r.addEventListener('change', () => {
+      if (checkAllCorrect()) {
+        yesBtn.disabled = false;
+        yesBtn.style.opacity = '1';
+      } else {
+        yesBtn.disabled = true;
+        yesBtn.style.opacity = '0.6';
+      }
+    }));
+
     yesBtn.addEventListener("click", () => {
+      if (!checkAllCorrect()) return;
       message.style.display = "block";
       yesBtn.disabled = true;
       noBtn.style.display = "none";
