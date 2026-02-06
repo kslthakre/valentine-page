@@ -49,19 +49,19 @@
     #noBtn { background: #ef4444; color: white; position: absolute; right: 0; top: 0; }
 
     .message { margin-top: 16px; font-size: 22px; color: #0f172a; display: none; text-align: center; }
+    .tease { margin-top: 10px; font-size: 16px; color: #e11d48; display: none; text-align: center; }
 
-    /* Hearts animation */
-    .heart {
+    /* Hearts & Confetti */
+    .floaty {
       position: fixed;
       bottom: -20px;
-      font-size: 20px;
-      animation: floatUp 2.5s linear forwards;
+      animation: floatUp 2.6s linear forwards;
       pointer-events: none;
       z-index: 1;
     }
     @keyframes floatUp {
-      0% { transform: translateY(0) scale(1); opacity: 1; }
-      100% { transform: translateY(-110vh) scale(1.5); opacity: 0; }
+      0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+      100% { transform: translateY(-110vh) rotate(360deg) scale(1.4); opacity: 0; }
     }
   </style>
 </head>
@@ -92,7 +92,7 @@
     <div class="question" id="q3">
       <div class="q-title">3) How much do you love me? (Select both 😉)</div>
       <div class="options">
-        <label><input type="checkbox" name="q3" value="a"> Stars in the galaxy into liters of Water on Earth</label>
+        <label><input type="checkbox" name="q3" value="a"> Stars in the galaxy into liters of water on Earth</label>
         <label><input type="checkbox" name="q3" value="b"> Population of India into total trees in this world</label>
       </div>
     </div>
@@ -102,6 +102,7 @@
       <button id="noBtn">No</button>
     </div>
 
+    <div id="tease" class="tease">Wrong answer, try again 😜</div>
     <div id="finalMsg" class="message">Yay! You got everything right. Yes, you are my Valentine! 🥰💖</div>
   </div>
 
@@ -109,6 +110,7 @@
     const noBtn = document.getElementById("noBtn");
     const nextBtn = document.getElementById("nextBtn");
     const finalMsg = document.getElementById("finalMsg");
+    const tease = document.getElementById("tease");
 
     const questions = [document.getElementById('q1'), document.getElementById('q2'), document.getElementById('q3')];
     let current = 0;
@@ -125,16 +127,31 @@
       noBtn.style.top = y + "px";
     });
 
-    function showerHearts(count = 40) {
+    // Simple success sound using Web Audio API (no external files)
+    function playSuccessSound() {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.value = 880;
+      o.connect(g);
+      g.connect(ctx.destination);
+      o.start();
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.4);
+      setTimeout(() => o.stop(), 450);
+    }
+
+    function spawnFloaties(count = 40, finalCombo = false) {
+      const emojis = finalCombo ? ['💖','🎉','✨','💘'] : ['💖'];
       for (let i = 0; i < count; i++) {
-        const h = document.createElement('div');
-        h.className = 'heart';
-        h.textContent = '💖';
-        h.style.left = Math.random() * 100 + 'vw';
-        h.style.fontSize = (16 + Math.random() * 24) + 'px';
-        h.style.animationDuration = (2 + Math.random() * 1.5) + 's';
-        document.body.appendChild(h);
-        setTimeout(() => h.remove(), 3000);
+        const e = document.createElement('div');
+        e.className = 'floaty';
+        e.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+        e.style.left = Math.random() * 100 + 'vw';
+        e.style.fontSize = (18 + Math.random() * 28) + 'px';
+        e.style.animationDuration = (2 + Math.random() * 1.6) + 's';
+        document.body.appendChild(e);
+        setTimeout(() => e.remove(), 3500);
       }
     }
 
@@ -156,15 +173,26 @@
     }
 
     function updateNextState() {
-      nextBtn.disabled = !checkCurrentCorrect();
+      const ok = checkCurrentCorrect();
+      nextBtn.disabled = !ok;
+      if (!ok) {
+        tease.style.display = 'block';
+      } else {
+        tease.style.display = 'none';
+      }
     }
 
     document.addEventListener('change', updateNextState);
 
     nextBtn.addEventListener('click', () => {
-      if (!checkCurrentCorrect()) return;
+      if (!checkCurrentCorrect()) {
+        tease.style.display = 'block';
+        return;
+      }
 
-      showerHearts();
+      // Correct answer effects
+      playSuccessSound();
+      spawnFloaties(45, false);
 
       // Move to next after a short delay
       setTimeout(() => {
@@ -172,15 +200,3 @@
         current++;
         if (current < questions.length) {
           questions[current].classList.add('active');
-          nextBtn.disabled = true;
-        } else {
-          // Finished all questions
-          finalMsg.style.display = 'block';
-          nextBtn.style.display = 'none';
-          noBtn.style.display = 'none';
-        }
-      }, 600);
-    });
-  </script>
-</body>
-</html>
