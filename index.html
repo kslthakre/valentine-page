@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Will You Be My Valentine?</title>
+  <title>Ruchu 💖</title>
   <style>
     body {
       margin: 0;
@@ -29,12 +29,23 @@
     h1 { margin-bottom: 10px; color: #e11d48; }
     .hint { font-size: 14px; color: #475569; margin-bottom: 12px; }
 
+    .intro { display: none; }
+    .intro.active { display: block; }
+
     .question { display: none; text-align: left; }
     .question.active { display: block; }
+
     .q-title { font-weight: bold; margin-bottom: 8px; }
     .options label { display: block; cursor: pointer; margin: 6px 0; }
 
-    .actions { position: relative; height: 80px; margin-top: 12px; display: flex; justify-content: center; gap: 12px; }
+    .actions {
+      height: 80px;
+      margin-top: 12px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+
     button {
       padding: 12px 24px;
       font-size: 18px;
@@ -42,14 +53,28 @@
       border-radius: 999px;
       cursor: pointer;
       transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+      background: #22c55e;
+      color: white;
     }
     button:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
-    #nextBtn { background: #22c55e; color: white; }
     #nextBtn[disabled] { opacity: 0.6; cursor: not-allowed; }
-    #noBtn { background: #ef4444; color: white; position: absolute; right: 0; top: 0; }
 
-    .message { margin-top: 16px; font-size: 22px; color: #0f172a; display: none; text-align: center; }
-    .tease { margin-top: 10px; font-size: 16px; color: #e11d48; display: none; text-align: center; }
+    .message {
+      margin-top: 16px;
+      font-size: 26px;
+      color: #0f172a;
+      display: none;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .tease {
+      margin-top: 10px;
+      font-size: 16px;
+      color: #e11d48;
+      display: none;
+      text-align: center;
+    }
 
     /* Hearts & Confetti */
     .floaty {
@@ -63,15 +88,33 @@
       0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
       100% { transform: translateY(-110vh) rotate(360deg) scale(1.4); opacity: 0; }
     }
+
+    /* Final Yes button movement */
+    #yesBtn {
+      position: relative;
+    }
   </style>
 </head>
 <body>
+
+  <!-- Optional background music -->
+  <audio id="bgMusic" src="romantic.mp3" loop></audio>
+
   <div class="card">
-    <h1>Will you be my Valentine? 💖</h1>
-    <div class="hint">Answer correctly to move ahead😄</div>
+
+    <!-- Intro -->
+    <div class="intro active" id="intro">
+      <h1>Ruchu my love 💖</h1>
+      <p class="hint">Hey Ruchu, let’s play a little game about <b>us</b> 😉</p>
+      <button id="startBtn">Start 💕</button>
+    </div>
+
+    <!-- Main Title -->
+    <h1 id="mainTitle" style="display:none;">Ruchu, this Valentine I made this for you 💖</h1>
+    <div class="hint" id="mainHint" style="display:none;">Answer correctly to move ahead…😄</div>
 
     <!-- Q1 -->
-    <div class="question active" id="q1">
+    <div class="question" id="q1">
       <div class="q-title">1) Easy: When did we first meet?</div>
       <div class="options">
         <label><input type="radio" name="q1" value="correct"> 7 Jan 2022</label>
@@ -97,52 +140,57 @@
       </div>
     </div>
 
-    <div class="actions">
+    <!-- Final Question -->
+    <div class="question" id="q4" style="text-align:center;">
+      <h1 style="margin-bottom:24px; color:#e11d48;">
+        💍 So Ruchu… will you be my Valentine? 💖
+      </h1>
+      <div class="actions" style="justify-content:center;">
+        <button id="yesBtn">Yes 😉</button>
+      </div>
+    </div>
+
+    <div class="actions" id="actions" style="display:none;">
       <button id="nextBtn" disabled>Next</button>
-      <button id="noBtn">No</button>
     </div>
 
     <div id="tease" class="tease">Wrong answer, try again 😜</div>
-    <div id="finalMsg" class="message">Yay! You got everything right. Yes, you are my Valentine! 🥰💖</div>
+    <div id="finalMsg" class="message">We are the Best Couple Ever 💑💖</div>
+
   </div>
 
   <script>
-    const noBtn = document.getElementById("noBtn");
     const nextBtn = document.getElementById("nextBtn");
     const finalMsg = document.getElementById("finalMsg");
     const tease = document.getElementById("tease");
+    const intro = document.getElementById('intro');
+    const startBtn = document.getElementById('startBtn');
+    const mainTitle = document.getElementById('mainTitle');
+    const mainHint = document.getElementById('mainHint');
+    const actions = document.getElementById('actions');
+    const yesBtn = document.getElementById('yesBtn');
 
-    const questions = [document.getElementById('q1'), document.getElementById('q2'), document.getElementById('q3')];
+    const questions = [
+      document.getElementById('q1'),
+      document.getElementById('q2'),
+      document.getElementById('q3'),
+      document.getElementById('q4')
+    ];
+
     let current = 0;
+    let yesRunCount = 0;
+    const maxRuns = 15;
 
-    // No button runs away
-    const card = document.querySelector('.card');
-    noBtn.addEventListener("mouseenter", () => {
-      const cardRect = card.getBoundingClientRect();
-      const maxX = cardRect.width - noBtn.offsetWidth;
-      const maxY = cardRect.height - noBtn.offsetHeight;
-      const x = Math.random() * Math.max(0, maxX);
-      const y = Math.random() * Math.max(0, maxY);
-      noBtn.style.left = x + "px";
-      noBtn.style.top = y + "px";
+    startBtn.addEventListener('click', () => {
+      intro.style.display = 'none';
+      mainTitle.style.display = 'block';
+      mainHint.style.display = 'block';
+      actions.style.display = 'flex';
+      questions[0].classList.add('active');
     });
 
-    // Simple success sound using Web Audio API (no external files)
-    function playSuccessSound() {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      o.type = 'sine';
-      o.frequency.value = 880;
-      o.connect(g);
-      g.connect(ctx.destination);
-      o.start();
-      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.4);
-      setTimeout(() => o.stop(), 450);
-    }
-
     function spawnFloaties(count = 40, finalCombo = false) {
-      const emojis = finalCombo ? ['💖','🎉','✨','💘'] : ['💖'];
+      const emojis = finalCombo ? ['💖','🎉','✨','💘','💑'] : ['💖'];
       for (let i = 0; i < count; i++) {
         const e = document.createElement('div');
         e.className = 'floaty';
@@ -167,36 +215,60 @@
       if (current === 2) {
         const a = document.querySelector('input[name="q3"][value="a"]').checked;
         const b = document.querySelector('input[name="q3"][value="b"]').checked;
-        return a && b; // both is correct
+        return a && b;
       }
-      return false;
+      return true;
     }
 
     function updateNextState() {
       const ok = checkCurrentCorrect();
       nextBtn.disabled = !ok;
-      if (!ok) {
-        tease.style.display = 'block';
-      } else {
-        tease.style.display = 'none';
-      }
+      tease.style.display = ok ? 'none' : 'block';
     }
 
     document.addEventListener('change', updateNextState);
 
     nextBtn.addEventListener('click', () => {
-      if (!checkCurrentCorrect()) {
-        tease.style.display = 'block';
-        return;
+      if (!checkCurrentCorrect()) return;
+
+      spawnFloaties(40, false);
+
+      questions[current].classList.remove('active');
+      current++;
+
+      if (current < questions.length - 1) {
+        questions[current].classList.add('active');
+        nextBtn.disabled = true;
+      } else {
+        // Show final screen only
+        actions.style.display = 'none';
+        mainTitle.style.display = 'none';
+        mainHint.style.display = 'none';
+        questions[current].classList.add('active');
       }
+    });
 
-      // Correct answer effects
-      playSuccessSound();
-      spawnFloaties(45, false);
+    // Yes button runs away ~8 times
+    yesBtn.addEventListener('mouseenter', () => {
+      if (yesRunCount < maxRuns) {
+        const card = document.querySelector('.card');
+        const rect = card.getBoundingClientRect();
+        const x = Math.random() * (rect.width - yesBtn.offsetWidth);
+        const y = Math.random() * (rect.height - yesBtn.offsetHeight);
+        yesBtn.style.position = 'absolute';
+        yesBtn.style.left = x + 'px';
+        yesBtn.style.top = y + 'px';
+        yesRunCount++;
+      }
+    });
 
-      // Move to next after a short delay
-      setTimeout(() => {
-        questions[current].classList.remove('active');
-        current++;
-        if (current < questions.length) {
-          questions[current].classList.add('active');
+    yesBtn.addEventListener('click', () => {
+      if (yesRunCount < maxRuns) return;
+
+      questions[current].style.display = 'none';
+      finalMsg.style.display = 'block';
+      spawnFloaties(150, true);
+    });
+  </script>
+</body>
+</html>
