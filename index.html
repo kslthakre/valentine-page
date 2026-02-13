@@ -97,8 +97,8 @@
 </head>
 <body>
 
-  <!-- Optional background music -->
-  <audio id="bgMusic" src="romantic.mp3" loop></audio>
+  <!-- Background Music -->
+  <audio id="bgMusic" src="bgm.mp3" loop></audio>
 
   <div class="card">
 
@@ -111,7 +111,7 @@
 
     <!-- Main Title -->
     <h1 id="mainTitle" style="display:none;">Ruchu, this Valentine I made this for you 💖</h1>
-    <div class="hint" id="mainHint" style="display:none;">Answer correctly to move ahead…😄</div>
+    <div class="hint" id="mainHint" style="display:none;">Answer correctly to move ahead… and get a shower of hearts 😄</div>
 
     <!-- Q1 -->
     <div class="question" id="q1">
@@ -155,7 +155,7 @@
     </div>
 
     <div id="tease" class="tease">Wrong answer, try again 😜</div>
-    <div id="finalMsg" class="message">We are the Best Couple Ever 💑💖</div>
+    <div id="finalMsg" class="message">Best Couple Ever 💑💖</div>
 
   </div>
 
@@ -169,6 +169,7 @@
     const mainHint = document.getElementById('mainHint');
     const actions = document.getElementById('actions');
     const yesBtn = document.getElementById('yesBtn');
+    const bgMusic = document.getElementById('bgMusic');
 
     const questions = [
       document.getElementById('q1'),
@@ -179,7 +180,25 @@
 
     let current = 0;
     let yesRunCount = 0;
-    const maxRuns = 15;
+    const maxRuns = 8;
+
+    // Try to autoplay music on load
+    window.addEventListener("load", () => {
+      bgMusic.volume = 0.5;
+      const playPromise = bgMusic.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Autoplay blocked, will start on first user interaction
+        });
+      }
+    });
+
+    // Fallback: start music on first click anywhere
+    document.addEventListener("click", () => {
+      if (bgMusic.paused) {
+        bgMusic.play();
+      }
+    }, { once: true });
 
     startBtn.addEventListener('click', () => {
       intro.style.display = 'none';
