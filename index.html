@@ -11,12 +11,15 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+      background: url("photo.jpg") no-repeat center center fixed;
+      background-size: cover;
       font-family: Arial, sans-serif;
       overflow: hidden;
     }
+
     .card {
-      background: white;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(2px);
       padding: 32px 28px;
       border-radius: 20px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.2);
@@ -26,6 +29,7 @@
       position: relative;
       z-index: 2;
     }
+
     h1 { margin-bottom: 10px; color: #e11d48; }
     .hint { font-size: 14px; color: #475569; margin-bottom: 12px; }
 
@@ -155,18 +159,7 @@
     </div>
 
     <div id="tease" class="tease">Wrong answer, try again 😜</div>
-    <div id="finalMsg" class="message">
-    Best Couple Ever 💑💖
-    <div style="margin-top:16px;">
-      <img src="photo.jpg" alt="Best Couple" style="
-        max-width:100%;
-        border-radius:16px;
-        box-shadow:0 8px 20px rgba(0,0,0,0.25);
-      ">
-  </div>
-</div>
-
-
+    <div id="finalMsg" class="message">Best Couple Ever 💑💖</div>
 
   </div>
 
